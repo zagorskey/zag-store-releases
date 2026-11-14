@@ -2,6 +2,7 @@
 name: Discord Release Announcements
 
 on:
+  workflow_dispatch:
   release:
     types: [published]
 
@@ -15,6 +16,8 @@ jobs:
       - name: Publish release to Discord
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_RELEASES_WEBHOOK }}
+          EVENT_NAME: ${{ github.event_name }}
+          REPOSITORY_URL: ${{ github.server_url }}/${{ github.repository }}
           RELEASE_NAME: ${{ github.event.release.name }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           RELEASE_URL: ${{ github.event.release.html_url }}
@@ -26,17 +29,23 @@ jobs:
           import urllib.request
 
           webhook = os.environ["DISCORD_WEBHOOK"]
-          name = os.environ["RELEASE_NAME"] or os.environ["RELEASE_TAG"]
-          body = os.environ.get("RELEASE_BODY", "").strip()
+          is_test = os.environ["EVENT_NAME"] == "workflow_dispatch"
+          name = ("Discord integration test" if is_test else
+                  (os.environ["RELEASE_NAME"] or os.environ["RELEASE_TAG"]))
+          body = ("This is a test notification. No Zag Store release was published."
+                  if is_test else os.environ.get("RELEASE_BODY", "").strip())
+          release_url = (os.environ["REPOSITORY_URL"] if is_test else
+                         os.environ["RELEASE_URL"])
 
           payload = {
               "username": "Zag Store Releases",
               "embeds": [{
-                  "title": f"🚀 {name}"[:256],
-                  "url": os.environ["RELEASE_URL"],
+                  "title": f"{'🧪' if is_test else '🚀'} {name}"[:256],
+                  "url": release_url,
                   "description": body[:1800] or "A new Zag Store release is available.",
                   "color": 3447003,
-                  "footer": {"text": "Zag Store • Official GitHub Release"}
+                  "footer": {"text": ("Zag Store • Test notification" if is_test else
+                                      "Zag Store • Official GitHub Release")}
               }]
           }
 
