@@ -1,0 +1,51 @@
+
+name: Discord Release Announcements
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  notify-discord:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish release to Discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_RELEASES_WEBHOOK }}
+          RELEASE_NAME: ${{ github.event.release.name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_URL: ${{ github.event.release.html_url }}
+          RELEASE_BODY: ${{ github.event.release.body }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import urllib.request
+
+          webhook = os.environ["DISCORD_WEBHOOK"]
+          name = os.environ["RELEASE_NAME"] or os.environ["RELEASE_TAG"]
+          body = os.environ.get("RELEASE_BODY", "").strip()
+
+          payload = {
+              "username": "Zag Store Releases",
+              "embeds": [{
+                  "title": f"🚀 {name}"[:256],
+                  "url": os.environ["RELEASE_URL"],
+                  "description": body[:1800] or "A new Zag Store release is available.",
+                  "color": 3447003,
+                  "footer": {"text": "Zag Store • Official GitHub Release"}
+              }]
+          }
+
+          request = urllib.request.Request(
+              webhook,
+              data=json.dumps(payload).encode("utf-8"),
+              headers={"Content-Type": "application/json"},
+              method="POST"
+          )
+          with urllib.request.urlopen(request, timeout=15) as response:
+              print("Discord notification sent:", response.status)
+          PY
