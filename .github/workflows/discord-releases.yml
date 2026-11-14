@@ -27,6 +27,7 @@ jobs:
           import json
           import os
           import urllib.request
+          import urllib.error
 
           webhook = os.environ["DISCORD_WEBHOOK"]
           is_test = os.environ["EVENT_NAME"] == "workflow_dispatch"
@@ -52,9 +53,25 @@ jobs:
           request = urllib.request.Request(
               webhook,
               data=json.dumps(payload).encode("utf-8"),
-              headers={"Content-Type": "application/json"},
+              headers={
+                  "Content-Type": "application/json",
+                  "User-Agent": "ZagStore-ReleaseNotifier/1.0",
+              },
               method="POST"
           )
-          with urllib.request.urlopen(request, timeout=15) as response:
-              print("Discord notification sent:", response.status)
+          try:
+              with urllib.request.urlopen(request, timeout=15) as response:
+                  print("Discord notification sent:", response.status)
+          except urllib.error.HTTPError as error:
+              print("Discord webhook HTTP status:", error.code)
+              # Never print the webhook URL, headers, or raw response body.
+              try:
+                  data = json.loads(error.read(2048).decode("utf-8"))
+                  if isinstance(data, dict):
+                      code = data.get("code")
+                      if isinstance(code, int):
+                          print("Discord API error code:", code)
+              except (ValueError, UnicodeError):
+                  print("Non-JSON error response (possibly an upstream block)")
+              raise SystemExit(1)
           PY
