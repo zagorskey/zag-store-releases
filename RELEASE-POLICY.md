@@ -58,3 +58,28 @@ and checksums must remain unchanged":
 This exception covers only the release, tag and assets above. Every other
 release, asset, checksum and signed manifest remains unchanged, and later
 corrections are published as a new build.
+
+### Beta 4 UI refresh (17 November 2026)
+
+The owner authorised a second exception, for the approved UI refresh, and
+asked that it stay Beta 4 (no Beta 5):
+
+- **Release:** `v1.0.0-beta.4` (published 2026-11-17T10:50:17Z) is kept, with
+  its tag and publication date. Its IPA is replaced by
+  `ZagStore-1.0.0-beta.4-29db51a3.ipa`, still 1.0.0 build 4, built from
+  `29db51a30d96b431a47642bf706634cf37e61a2c`, SHA-256
+  `0788c347f702100f74a1253ad443d6e630c92673faa9422580aed73c024ed236`
+  (59,538,766 bytes), with its `.sha256` file.
+- **Removed:** `ZagStore-1.0.0-beta.4-a8cdcbb9.ipa` (SHA-256
+  `358a546442eb1a150c843515e40e5f549204e2e81d6f2f23bc0683b84f2e810a`) and
+  its `.sha256` file, once sequence 9 has been live for longer than the
+  manifest cache.
+- **Metadata:** signed Beta v2 sequence 9 names the new IPA. Sequence 8, which
+  named the earlier one, is kept as `releases/v2/beta-sequence-8-backup.json`.
+  Sequences never decrease.
+- **Devices:** an app already on build 4 is not offered the new build 4 in the
+  app (it offers only newer builds); the release notes say to install the IPA
+  over it.
+
+This exception covers only the assets above. Every other release, asset,
+checksum and signed manifest remains unchanged.
